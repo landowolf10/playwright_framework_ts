@@ -12,7 +12,7 @@ jobs:
       - name: Install
         run: npm install
       - name: Run Playwright tests
-        run: npx playwright test checkout.spec.ts
+        run: npx playwright test successful_login.spec.ts
       - uses: actions/upload-artifact@v1
         if: failure()
         with:
