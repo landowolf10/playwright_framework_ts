@@ -5,7 +5,7 @@ jobs:
       - image: circleci/node:erbium-bullseye-browsers
     steps:
       - checkout
-       run:
+      - run:
           name: Install dependencies
           command: npm install
       - run:
