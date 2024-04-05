@@ -1,0 +1,19 @@
+version: 2.1
+jobs:
+  build:
+    docker:
+      - image: circleci/node:erbium-bullseye-browsers
+    steps:
+      - checkout
+       run:
+          name: Install dependencies
+          command: npm install
+      - run:
+          name: Run Playwright Tests
+          command: npx playwright test successful_login.spec.ts
+
+workflows:
+  version: 2
+  build-test:
+    jobs:
+      - build
