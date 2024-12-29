@@ -1,4 +1,4 @@
-import { ElementHandle, Locator, Page, expect } from "@playwright/test";
+import { Locator, Page } from "@playwright/test";
 import { DashboardLocators } from "../locators/dashboard_locators";
 
 export class DashboardPage {

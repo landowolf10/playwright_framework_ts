@@ -12,7 +12,7 @@ jobs:
             npx playwright install --with-deps
       - run:
           name: Run Playwright Tests
-          command: npx playwright test successful_login.spec.ts
+          command: npx playwright test
 
 workflows:
   version: 2

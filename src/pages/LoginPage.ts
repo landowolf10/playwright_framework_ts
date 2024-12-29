@@ -1,4 +1,4 @@
-import { Locator, Page, expect } from "@playwright/test";
+import { Locator, Page } from "@playwright/test";
 import { LoginLocators } from "../locators/login_locators";
 import { DashboardLocators } from "../locators/dashboard_locators";
 
@@ -11,10 +11,6 @@ export class LoginPage {
         this.page = page;
         this.loginLocators = new LoginLocators(page);
         this.dashboardLocators = new DashboardLocators(page);
-    }
-
-    async navigateToSauceLab() {
-        await this.page.goto('/');
     }
 
     async writeUsername(userName: string) {

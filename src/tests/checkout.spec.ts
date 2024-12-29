@@ -3,16 +3,19 @@ import { LoginPage } from '../pages/LoginPage';
 import { assert } from 'console';
 import { DashboardPage } from '../pages/DashboardPage';
 import { CheckoutPage } from '../pages/CheckoutPage';
+import { CommonPage } from '../pages/Common';
 
 let loginPage: LoginPage;
 let dashboardPage: DashboardPage;
 let checkoutPage: CheckoutPage;
+let commonPage: CommonPage;
 
 test.beforeEach(async ({ page }) => {
+  commonPage = new CommonPage(page);
   loginPage = new LoginPage(page);
   dashboardPage = new DashboardPage(page);
   checkoutPage = new CheckoutPage(page);
-  await loginPage.navigateToSauceLab();
+  await commonPage.navigateToSauceLab();
   await loginPage.writeUsername('standard_user');
   await loginPage.writePassword('secret_sauce');
   await loginPage.clickLoginButton();
@@ -38,6 +41,6 @@ test.describe('Complete checkout', () => {
   })
 });
 
-test.afterEach(async ({ page }) => {
+/*test.afterEach(async ({ page }) => {
   page.close();
-});
+});*/

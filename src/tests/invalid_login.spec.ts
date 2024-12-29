@@ -1,12 +1,14 @@
 import { test, expect } from '@playwright/test';
 import { LoginPage } from '../pages/LoginPage';
-import { assert } from 'console';
+import { CommonPage } from '../pages/Common';
 
 let loginPage: LoginPage;
+let commonPage: CommonPage;
 
 test.beforeEach(async ({ page }) => {
+  commonPage = new CommonPage(page);
   loginPage = new LoginPage(page);
-  await loginPage.navigateToSauceLab();
+  await commonPage.navigateToSauceLab();
 })
 
 
