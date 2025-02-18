@@ -13,6 +13,11 @@ jobs:
       - run:
           name: Run Playwright Tests
           command: npx playwright test
+      - store_artifacts:
+          path: ./playwright-report
+          destination: playwright-report-first
+      - store_artifacts:
+          path: /tmp/artifacts
 
 workflows:
   version: 2
