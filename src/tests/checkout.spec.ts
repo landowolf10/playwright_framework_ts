@@ -21,6 +21,8 @@ test.beforeEach(async ({ page }) => {
   await loginPage.clickLoginButton();
 })
 
+//Prueba
+
 test.describe('Complete checkout', () => {
   test('Proceed with checkout', async ({ }) => {
     await test.step('Sort products from most expensive to cheapest', async () => {
