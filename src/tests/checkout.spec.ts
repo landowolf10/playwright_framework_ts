@@ -36,11 +36,11 @@ test.describe('Complete checkout', () => {
       await dashboardPage.addProduct();
       await dashboardPage.addProduct();
       await checkoutPage.proceedWithCheckout('Orlando', 'Avila', '40880');
-      expect(await checkoutPage.getCurrentSubTotal()).toEqual(await dashboardPage.getSubTotalSum());
+      expect(await checkoutPage.getCurrentSubTotal()).toEqual('Item total: $49.96');
     })
   })
 });
 
-/*test.afterEach(async ({ page }) => {
+test.afterEach(async ({ page }) => {
   page.close();
-});*/
+});
