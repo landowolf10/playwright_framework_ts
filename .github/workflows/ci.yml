@@ -34,16 +34,22 @@ jobs:
           path: reports/html
           retention-days: 30
 
-      # 4. Guardar el reporte en carpeta con timestamp para historial
-      - name: Prepare timestamped report folder
+      # 4. Guardar el reporte en carpeta con timestamp + latest
+      - name: Prepare report folders
         if: always()
         run: |
           TIMESTAMP=$(date +"%Y-%m-%d_%H-%M")
           mkdir -p "reports-history/$TIMESTAMP"
           cp -r reports/html/* "reports-history/$TIMESTAMP/"
+
+          # crear carpeta latest (siempre reemplazada por el último run)
+          rm -rf reports-history/latest
+          mkdir -p reports-history/latest
+          cp -r reports/html/* reports-history/latest/
+
           echo "REPORT_PATH=reports-history/$TIMESTAMP" >> $GITHUB_ENV
 
-      # 5. Publicar en GitHub Pages con historial
+      # 5. Publicar en GitHub Pages con historial + latest
       - name: Upload report to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         if: always()
