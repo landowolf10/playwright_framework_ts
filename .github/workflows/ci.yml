@@ -5,7 +5,7 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch:  # 👈 para ejecutarlo manual también
+  workflow_dispatch:  # 👈 ejecutar manualmente también
 
 jobs:
   test:
@@ -26,7 +26,7 @@ jobs:
             -v ${{ github.workspace }}/test-results:/app/test-results \
             playwright-tests
 
-      # 3. Subir reportes como artifact (para descarga manual si quieres)
+      # 3. Subir reportes como artifact (descargable desde GitHub Actions)
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -34,12 +34,20 @@ jobs:
           path: reports/html
           retention-days: 30
 
-      # 4. Publicar reporte en GitHub Pages
+      # 4. Guardar el reporte en carpeta con timestamp para historial
+      - name: Prepare timestamped report folder
+        if: always()
+        run: |
+          TIMESTAMP=$(date +"%Y-%m-%d_%H-%M")
+          mkdir -p "reports-history/$TIMESTAMP"
+          cp -r reports/html/* "reports-history/$TIMESTAMP/"
+          echo "REPORT_PATH=reports-history/$TIMESTAMP" >> $GITHUB_ENV
+
+      # 5. Publicar en GitHub Pages con historial
       - name: Upload report to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         if: always()
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: reports/html
+          publish_dir: reports-history
           publish_branch: gh-pages
-          
