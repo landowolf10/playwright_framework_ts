@@ -7,41 +7,52 @@ jobs:
     steps:
       - checkout
 
+      # Build Docker image
       - run:
           name: Build Playwright Docker image
           command: docker build -t playwright-tests .
 
+      # Prepare directories con timestamp
       - run:
           name: Prepare report directories
           command: |
             mkdir -p ~/repo/reports-history
             TIMESTAMP=$(date +"%Y-%m-%d_%H-%M")
             export REPORT_DIR=~/repo/reports-history/$TIMESTAMP
-            mkdir -p $REPORT_DIR
-            echo $TIMESTAMP > $REPORT_DIR/timestamp.txt
-            echo $CIRCLE_BRANCH > $REPORT_DIR/branch.txt
-            echo $CIRCLE_SHA1 > $REPORT_DIR/commit.txt
+            mkdir -p "$REPORT_DIR"
+            echo "$TIMESTAMP" > "$REPORT_DIR/timestamp.txt"
+            echo "$CIRCLE_BRANCH" > "$REPORT_DIR/branch.txt"
+            echo "$CIRCLE_SHA1" > "$REPORT_DIR/commit.txt"
 
+      # Run tests inside Docker, reportes al host
       - run:
           name: Run Playwright tests in Docker
           command: |
             docker run --rm \
               -v ~/repo/reports-history/$TIMESTAMP:/app/reports \
-              playwright-tests
+              -v ~/repo/scripts:/app/scripts \
+              playwright-tests \
+              npx playwright test --reporter=html
 
+      # Update "latest" symlink
       - run:
           name: Update latest report symlink
           command: |
             rm -rf ~/repo/reports-history/latest || true
             ln -s ~/repo/reports-history/$TIMESTAMP ~/repo/reports-history/latest
 
+      # Store artifacts (descarga desde CircleCI)
       - store_artifacts:
           path: ~/repo/reports-history
           destination: playwright-reports
 
+      # Generate dashboard HTML
       - run:
           name: Generate HTML Dashboard
-          command: bash scripts/generate_dashboard.sh
+          command: |
+            TIMESTAMP=$(ls -1 ~/repo/reports-history | grep -v latest | sort | tail -n1)
+            REPORT_DIR=~/repo/reports-history/$TIMESTAMP
+            bash ~/repo/scripts/generate_dashboard.sh "$REPORT_DIR"
 
 workflows:
   version: 2
