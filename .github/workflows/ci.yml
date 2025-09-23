@@ -14,22 +14,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set environment info
+        run: |
+          echo "BRANCH=${GITHUB_REF_NAME}" >> $GITHUB_ENV
+          echo "COMMIT=${GITHUB_SHA}" >> $GITHUB_ENV
+
       - name: Build Playwright Docker image
         run: docker build -t playwright-tests .
 
       - name: Run Playwright tests in Docker
+        id: run_tests
         run: |
           docker run --rm \
             -v ${{ github.workspace }}/reports:/app/reports \
             -v ${{ github.workspace }}/test-results:/app/test-results \
             playwright-tests
+          echo "STATUS=success" >> $GITHUB_ENV
+        continue-on-error: true
 
-      - uses: actions/upload-artifact@v4
+      - name: Check run status
         if: always()
-        with:
-          name: playwright-report
-          path: reports/html
-          retention-days: 30
+        run: |
+          if [ -z "$STATUS" ]; then
+            echo "STATUS=failure" >> $GITHUB_ENV
+          fi
 
       - name: Prepare report folders
         if: always()
@@ -56,44 +64,16 @@ jobs:
             <meta charset="UTF-8">
             <title>Playwright Reports Dashboard</title>
             <style>
-              body {
-                font-family: Arial, sans-serif;
-                background: #f4f6f8;
-                margin: 0;
-                padding: 20px;
-              }
-              h1 {
-                text-align: center;
-                margin-bottom: 20px;
-              }
-              table {
-                border-collapse: collapse;
-                margin: auto;
-                width: 80%;
-                background: white;
-                box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-              }
-              th, td {
-                padding: 12px 16px;
-                border-bottom: 1px solid #ddd;
-                text-align: center;
-              }
-              th {
-                background: #007acc;
-                color: white;
-              }
-              tr:hover {
-                background: #f1f1f1;
-              }
-              a {
-                text-decoration: none;
-                color: #007acc;
-                font-weight: bold;
-              }
-              .latest {
-                background: #e8f4ff;
-                font-weight: bold;
-              }
+              body { font-family: Arial, sans-serif; background: #f4f6f8; margin:0; padding:20px; }
+              h1 { text-align:center; margin-bottom:20px; }
+              table { border-collapse: collapse; margin:auto; width:90%; background:white; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+              th, td { padding: 12px 16px; border-bottom:1px solid #ddd; text-align:center; }
+              th { background:#007acc; color:white; }
+              tr:hover { background:#f1f1f1; }
+              a { text-decoration:none; color:#007acc; font-weight:bold; }
+              .latest { background:#e8f4ff; font-weight:bold; }
+              .success { color:green; font-weight:bold; }
+              .failure { color:red; font-weight:bold; }
             </style>
           </head>
           <body>
@@ -102,6 +82,9 @@ jobs:
               <thead>
                 <tr>
                   <th>Run</th>
+                  <th>Branch</th>
+                  <th>Commit</th>
+                  <th>Status</th>
                   <th>Reporte</th>
                 </tr>
               </thead>
@@ -109,12 +92,12 @@ jobs:
           EOF
 
           # Último reporte
-          echo "<tr class='latest'><td>Último</td><td><a href='latest/index.html'>Ver reporte</a></td></tr>" >> $INDEX_FILE
+          echo "<tr class='latest'><td>Último</td><td>${BRANCH}</td><td>${COMMIT:0:7}</td><td class='$STATUS'>$STATUS</td><td><a href='latest/index.html'>Ver reporte</a></td></tr>" >> $INDEX_FILE
 
           # Historial
           for d in $(ls -d reports-history/*/ | grep -v 'latest' | sort -r); do
             NAME=$(basename $d)
-            echo "<tr><td>$NAME</td><td><a href='$NAME/index.html'>Ver reporte</a></td></tr>" >> $INDEX_FILE
+            echo "<tr><td>$NAME</td><td>-</td><td>-</td><td>-</td><td><a href='$NAME/index.html'>Ver reporte</a></td></tr>" >> $INDEX_FILE
           done
 
           cat >> $INDEX_FILE <<'EOF'
