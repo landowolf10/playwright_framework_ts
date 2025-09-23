@@ -1,23 +1,16 @@
 version: 2.1
 
-executors:
-  playwright-executor:
-    docker:
-      - image: cimg/base:stable
-    working_directory: ~/repo
-
 jobs:
   build-and-test:
-    executor: playwright-executor
+    machine: true
+    working_directory: ~/repo
     steps:
       - checkout
 
-      # Construir la imagen de Docker con tu Dockerfile
       - run:
           name: Build Playwright Docker image
           command: docker build -t playwright-tests .
 
-      # Crear carpetas de reportes con timestamp
       - run:
           name: Prepare report directories
           command: |
@@ -29,7 +22,6 @@ jobs:
             echo $CIRCLE_BRANCH > $REPORT_DIR/branch.txt
             echo $CIRCLE_SHA1 > $REPORT_DIR/commit.txt
 
-      # Ejecutar tests dentro del contenedor Docker
       - run:
           name: Run Playwright tests in Docker
           command: |
@@ -37,19 +29,16 @@ jobs:
               -v ~/repo/reports-history/$TIMESTAMP:/app/reports \
               playwright-tests
 
-      # Actualizar enlace "latest"
       - run:
           name: Update latest report symlink
           command: |
             rm -rf ~/repo/reports-history/latest || true
             ln -s ~/repo/reports-history/$TIMESTAMP ~/repo/reports-history/latest
 
-      # Guardar artifacts para descargar desde CircleCI
       - store_artifacts:
           path: ~/repo/reports-history
           destination: playwright-reports
 
-      # Generar dashboard HTML
       - run:
           name: Generate HTML Dashboard
           command: bash scripts/generate_dashboard.sh
