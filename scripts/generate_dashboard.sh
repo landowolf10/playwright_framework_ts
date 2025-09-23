@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Primer argumento: carpeta del run actual
+# Carpeta del run actual (primer argumento)
 RUN_DIR="$1"
 if [ -z "$RUN_DIR" ]; then
   echo "Uso: $0 <run_directory>"
@@ -46,7 +46,7 @@ a { text-decoration:none; color:#007acc; font-weight:bold; }
 <tbody>
 EOF
 
-# Iterar todos los runs
+# Iterar todos los runs, orden descendente
 for dir in $(ls -d "$HISTORY_DIR"/*/ | grep -v 'latest' | sort -r); do
   TIMESTAMP=$(cat "$dir/timestamp.txt")
   BRANCH=$(cat "$dir/branch.txt")
@@ -57,10 +57,11 @@ for dir in $(ls -d "$HISTORY_DIR"/*/ | grep -v 'latest' | sort -r); do
   echo "<tr><td>$TIMESTAMP</td><td>$BRANCH</td><td>$COMMIT</td><td class='$STATUS'>$STATUS</td><td><a href='$LINK'>Ver reporte</a></td></tr>" >> "$INDEX_FILE"
 done
 
-# Último run como destacado
-if [ -d "$HISTORY_DIR/latest" ]; then
-  BRANCH=$(cat "$HISTORY_DIR/latest/branch.txt")
-  COMMIT=$(cat "$HISTORY_DIR/latest/commit.txt")
+# Último run destacado
+LATEST_DIR="$HISTORY_DIR/latest"
+if [ -d "$LATEST_DIR" ] && [ -f "$LATEST_DIR/branch.txt" ]; then
+  BRANCH=$(cat "$LATEST_DIR/branch.txt")
+  COMMIT=$(cat "$LATEST_DIR/commit.txt")
   STATUS="success"
   echo "<tr class='latest'><td>Último</td><td>$BRANCH</td><td>$COMMIT</td><td class='$STATUS'>$STATUS</td><td><a href='latest/index.html'>Ver reporte</a></td></tr>" >> "$INDEX_FILE"
 fi
