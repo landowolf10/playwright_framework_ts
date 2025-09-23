@@ -5,7 +5,7 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch:  # 👈 ejecutar manualmente también
+  workflow_dispatch:
 
 jobs:
   test:
@@ -14,11 +14,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Build Docker image desde tu Dockerfile
       - name: Build Playwright Docker image
         run: docker build -t playwright-tests .
 
-      # 2. Run tests dentro del contenedor
       - name: Run Playwright tests in Docker
         run: |
           docker run --rm \
@@ -26,7 +24,6 @@ jobs:
             -v ${{ github.workspace }}/test-results:/app/test-results \
             playwright-tests
 
-      # 3. Subir reportes como artifact (descargable desde GitHub Actions)
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -34,7 +31,6 @@ jobs:
           path: reports/html
           retention-days: 30
 
-      # 4. Guardar el reporte en carpeta con timestamp + latest
       - name: Prepare report folders
         if: always()
         run: |
@@ -42,36 +38,92 @@ jobs:
           mkdir -p "reports-history/$TIMESTAMP"
           cp -r reports/html/* "reports-history/$TIMESTAMP/"
 
-          # crear carpeta latest (siempre reemplazada por el último run)
           rm -rf reports-history/latest
           mkdir -p reports-history/latest
           cp -r reports/html/* reports-history/latest/
 
           echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
 
-      # 5. Generar index.html con links a cada ejecución
-      - name: Generate index.html
+      - name: Generate styled index.html
         if: always()
         run: |
           INDEX_FILE="reports-history/index.html"
 
-          echo "<!DOCTYPE html>" > $INDEX_FILE
-          echo "<html lang='en'><head><meta charset='UTF-8'><title>Playwright Reports</title></head><body>" >> $INDEX_FILE
-          echo "<h1>Historial de Playwright Reports</h1>" >> $INDEX_FILE
-          echo "<ul>" >> $INDEX_FILE
+          cat > $INDEX_FILE <<'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <title>Playwright Reports Dashboard</title>
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                background: #f4f6f8;
+                margin: 0;
+                padding: 20px;
+              }
+              h1 {
+                text-align: center;
+                margin-bottom: 20px;
+              }
+              table {
+                border-collapse: collapse;
+                margin: auto;
+                width: 80%;
+                background: white;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+              }
+              th, td {
+                padding: 12px 16px;
+                border-bottom: 1px solid #ddd;
+                text-align: center;
+              }
+              th {
+                background: #007acc;
+                color: white;
+              }
+              tr:hover {
+                background: #f1f1f1;
+              }
+              a {
+                text-decoration: none;
+                color: #007acc;
+                font-weight: bold;
+              }
+              .latest {
+                background: #e8f4ff;
+                font-weight: bold;
+              }
+            </style>
+          </head>
+          <body>
+            <h1>Historial de Playwright Reports</h1>
+            <table>
+              <thead>
+                <tr>
+                  <th>Run</th>
+                  <th>Reporte</th>
+                </tr>
+              </thead>
+              <tbody>
+          EOF
 
-          # Link al último reporte
-          echo "<li><a href='latest/index.html'>Último reporte</a></li>" >> $INDEX_FILE
+          # Último reporte
+          echo "<tr class='latest'><td>Último</td><td><a href='latest/index.html'>Ver reporte</a></td></tr>" >> $INDEX_FILE
 
-          # Listar todos los timestamps (ordenados descendente)
+          # Historial
           for d in $(ls -d reports-history/*/ | grep -v 'latest' | sort -r); do
             NAME=$(basename $d)
-            echo "<li><a href='$NAME/index.html'>$NAME</a></li>" >> $INDEX_FILE
+            echo "<tr><td>$NAME</td><td><a href='$NAME/index.html'>Ver reporte</a></td></tr>" >> $INDEX_FILE
           done
 
-          echo "</ul></body></html>" >> $INDEX_FILE
+          cat >> $INDEX_FILE <<'EOF'
+              </tbody>
+            </table>
+          </body>
+          </html>
+          EOF
 
-      # 6. Publicar en GitHub Pages
       - name: Upload report to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         if: always()
