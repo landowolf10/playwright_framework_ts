@@ -1,7 +1,62 @@
 <!DOCTYPE html>
-<html lang='en'><head><meta charset='UTF-8'><title>Playwright Reports</title></head><body>
-<h1>Historial de Playwright Reports</h1>
-<ul>
-<li><a href='latest/index.html'>Último reporte</a></li>
-<li><a href='2025-09-23_20-58/index.html'>2025-09-23_20-58</a></li>
-</ul></body></html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Playwright Reports Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      margin: auto;
+      width: 80%;
+      background: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+    th {
+      background: #007acc;
+      color: white;
+    }
+    tr:hover {
+      background: #f1f1f1;
+    }
+    a {
+      text-decoration: none;
+      color: #007acc;
+      font-weight: bold;
+    }
+    .latest {
+      background: #e8f4ff;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Historial de Playwright Reports</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Run</th>
+        <th>Reporte</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr class='latest'><td>Último</td><td><a href='latest/index.html'>Ver reporte</a></td></tr>
+<tr><td>2025-09-23_21-02</td><td><a href='2025-09-23_21-02/index.html'>Ver reporte</a></td></tr>
+    </tbody>
+  </table>
+</body>
+</html>
