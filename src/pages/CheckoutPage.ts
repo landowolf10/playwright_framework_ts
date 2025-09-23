@@ -1,23 +1,20 @@
-import { ElementHandle, Locator, Page, expect } from "@playwright/test";
+import { Page } from "@playwright/test";
 import { DashboardLocators } from "../locators/dashboard_locators";
 import { CheckoutLocators } from "../locators/checkout_locators";
-import { DashboardPage } from "./DashboardPage";
+import { BasePage } from "../helpers/BasePage";
 
-export class CheckoutPage {
+export class CheckoutPage extends BasePage{
     private readonly checkoutLocators: CheckoutLocators;
     private readonly dashboardLocators: DashboardLocators;
-    private dashboardPage: DashboardPage;
-    readonly page: Page;
 
     constructor(page: Page) {
-        this.page = page;
+        super(page);
         this.checkoutLocators = new CheckoutLocators(page);
         this.dashboardLocators = new DashboardLocators(page);
-        this.dashboardPage = new DashboardPage(page);
     }
 
     async getCurrentSubTotal(): Promise<string> {
-        const currentSubtotal = await this.checkoutLocators.subtotal.textContent();
+        const currentSubtotal = await this.getElementText(this.checkoutLocators.subtotal);
 
         if (currentSubtotal !== null) {
             return currentSubtotal;
@@ -26,16 +23,27 @@ export class CheckoutPage {
         }
     }
 
-    /*async getExpectedSubTotal(): Promise<string> {
-        return await this.dashboardPage.getSubTotalSum();
-    }*/
-
     async proceedWithCheckout(firstName: string, lastName: string, zipCode: string) {
-        this.dashboardLocators.cartIcon.click();
-        this.checkoutLocators.checkoutButton.click();
-        await this.checkoutLocators.txtFirstName.fill(firstName);
-        await this.checkoutLocators.txtLastName.fill(lastName);
-        await this.checkoutLocators.txtZipCode.fill(zipCode);
-        this.checkoutLocators.continueButton.click();
+        await this.clickElement(this.dashboardLocators.cartIcon);
+        await this.clickElement(this.checkoutLocators.checkoutButton);
+        await this.writeText(this.checkoutLocators.txtFirstName, firstName);
+        await this.writeText(this.checkoutLocators.txtLastName, lastName);
+        await this.writeText(this.checkoutLocators.txtZipCode, zipCode);
+        await this.clickElement(this.checkoutLocators.continueButton);
+    }
+
+    async finishCheckout() {
+        await this.clickElement(this.checkoutLocators.finishButton);
+    }
+
+    async clickBackHomeButton() {
+        await this.clickElement(this.checkoutLocators.backToHomeButton);
+    }
+
+    getCheckOutTexts() {
+        return {
+            orderTitle: this.checkoutLocators.orderTitle,
+            orderMessage: this.checkoutLocators.orderMessage,
+        };
     }
 }

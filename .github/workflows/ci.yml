@@ -1,27 +1,35 @@
-name: Playwright Tests
+name: Playwright Tests (Docker)
+
 on:
   push:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+
 jobs:
   test:
-    timeout-minutes: 60
     runs-on: ubuntu-22.04
+
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 18
-    - name: Install dependencies
-      run: npm ci
-    - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
-    - name: Run Playwright tests
-      run: npx playwright test --reporter=html
-    - uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: playwright-report
-        path: playwright-report/
-        retention-days: 30
+      - uses: actions/checkout@v4
+
+      # 1. Build Docker image desde tu Dockerfile
+      - name: Build Playwright Docker image
+        run: docker build -t playwright-tests .
+
+      # 2. Run tests dentro del contenedor
+      #    Guardamos reportes en un volumen para extraerlos
+      - name: Run Playwright tests in Docker
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/reports:/app/reports \
+            -v ${{ github.workspace }}/test-results:/app/test-results \
+            playwright-tests
+
+      # 3. Subir reportes de Playwright como artifact
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: reports/html
+          retention-days: 30

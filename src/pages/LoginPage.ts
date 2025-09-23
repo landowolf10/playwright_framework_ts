@@ -1,55 +1,46 @@
-import { Locator, Page } from "@playwright/test";
+import { Page } from "@playwright/test";
 import { LoginLocators } from "../locators/login_locators";
 import { DashboardLocators } from "../locators/dashboard_locators";
+import { BasePage } from "../helpers/BasePage";
 
-export class LoginPage {
+export class LoginPage extends BasePage{
     private readonly loginLocators: LoginLocators;
     private readonly dashboardLocators: DashboardLocators;
-    readonly page: Page;
 
     constructor(page: Page) {
-        this.page = page;
+        super(page);
         this.loginLocators = new LoginLocators(page);
         this.dashboardLocators = new DashboardLocators(page);
     }
 
     async writeUsername(userName: string) {
-        await this.loginLocators.userTextbox.fill(userName);
+        await this.writeText(this.loginLocators.userTextbox, userName);
     }
 
     async writePassword(password: string) {
-        await this.loginLocators.passwordTextbox.fill(password);
+        await this.writeText(this.loginLocators.passwordTextbox, password);
     }
 
     async clickLoginButton() {
-        await this.loginLocators.loginButton.click();
+        await this.clickElement(this.loginLocators.loginButton);
     }
 
-    async getValidLoginElements(): Promise<Map<string, Locator>> {
-        let presentElements: Map<string, Locator> = new Map<string, Locator>();
-
-        presentElements.set("cart_icon", this.dashboardLocators.cartIcon);
-        presentElements.set("drop_down", this.dashboardLocators.sortDropDown);
-
-        return presentElements;
+    getValidLoginElements() {
+        return {
+            cartIcon: this.dashboardLocators.cartIcon,
+            sortDropDown: this.dashboardLocators.sortDropDown,
+        };
     }
 
-    async getInvalidLoginElements(): Promise<Map<string, Locator>> {
-        let presentElements: Map<string, Locator> = new Map<string, Locator>();
-
-        presentElements.set("login_button", this.loginLocators.loginButton);
-        presentElements.set("error_message", this.loginLocators.errorMessage);
-
-        return presentElements;
+    getInvalidLoginElements() {
+        return {
+            loginButton: this.loginLocators.loginButton,
+            errorMessage: this.loginLocators.errorMessage,
+        };
     }
 
     async getErrorMessageText(): Promise<string> {
-        const errorMessage: string | null = await this.loginLocators.errorMessage.textContent();
-
-        if (errorMessage !== null) {
-            return errorMessage;
-        } else {
-            throw new Error("Error message is null.");
-        }
+        const errorMessage: string | null = await this.getElementText(this.loginLocators.errorMessage);
+        return errorMessage ?? "Error message not found.";
     }
 }

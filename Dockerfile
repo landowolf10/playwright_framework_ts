@@ -19,5 +19,5 @@ COPY src ./src
 # Environment variable for specifying the WebDriverIO configuration file
 ENV TEST_FILE=""
 
-# Command to run WebDriverIO tests
+# Command to run Playwright tests
 CMD ["sh", "-c", "npx playwright test $TEST_FILE"]

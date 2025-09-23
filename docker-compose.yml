@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  playwright:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: playwright-tests
+    environment:
+      BASE_URL: ${BASE_URL:-https://www.saucedemo.com}
+      TEST_FILE: ${TEST_FILE:-}
+      CI: "true"
+    volumes:
+      - ./src:/app/src
+      - ./playwright.config.ts:/app/playwright.config.ts
+      - ./reports:/app/reports
+      - ./test-results:/app/test-results
+      - ./package.json:/app/package.json
+      - ./package-lock.json:/app/package-lock.json
+    working_dir: /app
+    command: >
+      sh -c "npx playwright install --with-deps && npx playwright test $TEST_FILE"
+
+  playwright-report:
+    image: mcr.microsoft.com/playwright:v1.41.2-focal
+    container_name: playwright-report
+    working_dir: /app
+    volumes:
+      - ./reports:/app/reports
+    ports:
+      - "8080:8080"
+    command: >
+      sh -c "npx playwright show-report ./reports/html --port 8080"
