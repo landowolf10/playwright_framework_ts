@@ -33,14 +33,6 @@ jobs:
               playwright-tests \
               npx playwright test --reporter=html
 
-      # Copiar metadata al directorio de reportes generado
-      - run:
-          name: Copy metadata to reports
-          command: |
-            cp ~/repo/reports-history/$TIMESTAMP/timestamp.txt ~/repo/reports-history/$TIMESTAMP/
-            cp ~/repo/reports-history/$TIMESTAMP/branch.txt ~/repo/reports-history/$TIMESTAMP/
-            cp ~/repo/reports-history/$TIMESTAMP/commit.txt ~/repo/reports-history/$TIMESTAMP/
-
       # Actualizar symlink "latest"
       - run:
           name: Update latest report symlink
