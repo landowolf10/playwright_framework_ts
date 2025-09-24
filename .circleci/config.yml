@@ -2,7 +2,7 @@ version: 2.1
 
 jobs:
   build-and-test:
-    machine: true  # Necesario para usar Docker
+    machine: true
     working_directory: ~/repo
     steps:
       - checkout
@@ -12,13 +12,14 @@ jobs:
           name: Build Playwright Docker image
           command: docker build -t playwright-tests .
 
-      # Preparar directorio de reportes con timestamp
+      # Preparar directorio de reportes con timestamp y guardar TIMESTAMP
       - run:
           name: Prepare report directories
           command: |
             mkdir -p ~/repo/reports-history
             TIMESTAMP=$(date +"%Y-%m-%d_%H-%M")
-            export REPORT_DIR=~/repo/reports-history/$TIMESTAMP
+            echo "$TIMESTAMP" > ~/repo/reports-history/.last_run
+            REPORT_DIR=~/repo/reports-history/$TIMESTAMP
             mkdir -p "$REPORT_DIR"
             echo "$TIMESTAMP" > "$REPORT_DIR/timestamp.txt"
             echo "$CIRCLE_BRANCH" > "$REPORT_DIR/branch.txt"
@@ -28,6 +29,7 @@ jobs:
       - run:
           name: Run Playwright tests in Docker
           command: |
+            TIMESTAMP=$(cat ~/repo/reports-history/.last_run)
             docker run --rm \
               -v ~/repo/reports-history/$TIMESTAMP:/app/reports \
               playwright-tests \
@@ -37,10 +39,11 @@ jobs:
       - run:
           name: Update latest report symlink
           command: |
+            TIMESTAMP=$(cat ~/repo/reports-history/.last_run)
             rm -rf ~/repo/reports-history/latest || true
             ln -s ~/repo/reports-history/$TIMESTAMP ~/repo/reports-history/latest
 
-      # Guardar artifacts para descargar desde CircleCI
+      # Guardar artifacts
       - store_artifacts:
           path: ~/repo/reports-history
           destination: playwright-reports
@@ -48,7 +51,9 @@ jobs:
       # Generar dashboard HTML
       - run:
           name: Generate HTML Dashboard
-          command: bash ~/repo/scripts/generate_dashboard.sh ~/repo/reports-history/$TIMESTAMP
+          command: |
+            TIMESTAMP=$(cat ~/repo/reports-history/.last_run)
+            bash ~/repo/scripts/generate_dashboard.sh ~/repo/reports-history/$TIMESTAMP
 
 workflows:
   version: 2
