@@ -1,23 +1,21 @@
-# Use Node.js 18.x as the base image
+# Base image oficial de Playwright con dependencias
 FROM mcr.microsoft.com/playwright:v1.41.2-focal
 
 # Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json to the working directory
+# Copiar solo package.json y package-lock.json para cache de npm install
 COPY package.json package-lock.json playwright.config.ts ./
 
-# Install npm dependencies
-RUN npm install
-#RUN npm install playwright
-#RUN npx playwright install --with-deps
+# Instalar dependencias de Node y Playwright
+RUN npm ci
+RUN npx playwright install --with-deps
 
-# Copy the entire source folder including all subfolders
+# Copiar el resto del código fuente
 COPY src ./src
 
-
-# Environment variable for specifying the WebDriverIO configuration file
+# Establecer variable opcional de test
 ENV TEST_FILE=""
 
-# Command to run Playwright tests
+# Comando por defecto para ejecutar los tests
 CMD ["sh", "-c", "npx playwright test $TEST_FILE"]
