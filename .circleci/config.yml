@@ -18,18 +18,22 @@ jobs:
           name: Run Playwright Tests in Docker
           command: |
             docker run --rm \
-              -v $(pwd)/playwright-report:/app/playwright-report \
+              -v $(pwd)/reports:/app/reports \
               -v $(pwd)/src:/app/src \
               playwright-tests
 
-      # Guardar artifacts (reporte HTML)
+      # Guardar artifacts (HTML + Allure)
       - store_artifacts:
-          path: ./playwright-report
-          destination: playwright-report
+          path: ./reports/html
+          destination: playwright-html-report
 
-      # Guardar resultados de test (CircleCI los interpreta)
+      - store_artifacts:
+          path: ./reports/allure-results
+          destination: playwright-allure-results
+
+      # Guardar resultados de test (JUnit para CircleCI)
       - store_test_results:
-          path: ./playwright-report
+          path: ./reports/junit
 
 workflows:
   version: 2
