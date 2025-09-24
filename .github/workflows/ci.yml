@@ -94,7 +94,7 @@ jobs:
           # Último reporte
           echo "<tr class='latest'><td>Último</td><td>${BRANCH}</td><td>${COMMIT:0:7}</td><td class='$STATUS'>$STATUS</td><td><a href='latest/index.html'>Ver reporte</a></td></tr>" >> $INDEX_FILE
 
-          # Historial
+          # Historial de reportes previos
           for d in $(ls -d reports-history/*/ | grep -v 'latest' | sort -r); do
             NAME=$(basename $d)
             echo "<tr><td>$NAME</td><td>-</td><td>-</td><td>-</td><td><a href='$NAME/index.html'>Ver reporte</a></td></tr>" >> $INDEX_FILE
@@ -114,3 +114,5 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: reports-history
           publish_branch: gh-pages
+          keep_files: true
+          commit_message: "Update Playwright reports ${{ env.TIMESTAMP }}"
