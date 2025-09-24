@@ -35,6 +35,24 @@ jobs:
       - store_test_results:
           path: ./reports/junit
 
+      # Publicar link directo al reporte HTML en el Job Summary
+      - run:
+          name: Publish Playwright Report URL
+          command: |
+            echo "Fetching artifact URL for Playwright report..."
+
+            # Llamar a la API de CircleCI para obtener artifacts de este build
+            ARTIFACT_URL=$(curl -s -H "Circle-Token: $CIRCLE_TOKEN" \
+              "https://circleci.com/api/v2/project/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/${CIRCLE_BUILD_NUM}/artifacts" \
+              | jq -r '.items[] | select(.path | endswith("playwright-html-report/index.html")) | .url')
+
+            if [ -z "$ARTIFACT_URL" ]; then
+              echo "❌ No se encontró el artifact del reporte."
+              exit 1
+            fi
+
+            echo "✅ Playwright report disponible aquí: $ARTIFACT_URL"
+
 workflows:
   version: 2
   build-test:
