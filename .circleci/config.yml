@@ -22,7 +22,7 @@ jobs:
               -v $(pwd)/src:/app/src \
               playwright-tests
 
-      # Guardar artifacts (HTML + Allure)
+      # Guardar artifacts
       - store_artifacts:
           path: ./reports/html
           destination: playwright-html-report
@@ -35,23 +35,12 @@ jobs:
       - store_test_results:
           path: ./reports/junit
 
-      # Publicar link directo al reporte HTML en el Job Summary
+      # Mostrar ruta del reporte en el Job Summary
       - run:
-          name: Publish Playwright Report URL
+          name: Show Playwright Report Path
           command: |
-            echo "Fetching artifact URL for Playwright report..."
-
-            # Llamar a la API de CircleCI para obtener artifacts de este build
-            ARTIFACT_URL=$(curl -s -H "Circle-Token: $CIRCLE_TOKEN" \
-              "https://circleci.com/api/v2/project/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/${CIRCLE_BUILD_NUM}/artifacts" \
-              | jq -r '.items[] | select(.path | endswith("playwright-html-report/index.html")) | .url')
-
-            if [ -z "$ARTIFACT_URL" ]; then
-              echo "❌ No se encontró el artifact del reporte."
-              exit 1
-            fi
-
-            echo "✅ Playwright report disponible aquí: $ARTIFACT_URL"
+            echo "✅ Playwright HTML report estará disponible en Artifacts:"
+            echo "   ./reports/html/index.html"
 
 workflows:
   version: 2
