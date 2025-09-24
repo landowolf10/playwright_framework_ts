@@ -22,9 +22,12 @@ jobs:
             source $BASH_ENV
             REPORT_DIR=~/repo/reports-history/$TIMESTAMP
             mkdir -p "$REPORT_DIR"
-            echo "$TIMESTAMP" > "$REPORT_DIR/timestamp.txt"
-            echo "$CIRCLE_BRANCH" > "$REPORT_DIR/branch.txt"
-            echo "$CIRCLE_SHA1" > "$REPORT_DIR/commit.txt"
+
+            # Guardar metadata temporal en otro lugar
+            mkdir -p ~/repo/reports-metadata/$TIMESTAMP
+            echo "$TIMESTAMP" > ~/repo/reports-metadata/$TIMESTAMP/timestamp.txt
+            echo "$CIRCLE_BRANCH" > ~/repo/reports-metadata/$TIMESTAMP/branch.txt
+            echo "$CIRCLE_SHA1" > ~/repo/reports-metadata/$TIMESTAMP/commit.txt
 
       # Ejecutar tests dentro del contenedor Docker y guardar reportes HTML
       - run:
@@ -35,6 +38,13 @@ jobs:
               -v ~/repo/reports-history/$TIMESTAMP:/app/reports \
               playwright-tests \
               npx playwright test --reporter=html --output=/app/reports
+
+      # Restaurar metadata porque Playwright sobreescribe el directorio
+      - run:
+          name: Restore metadata
+          command: |
+            source $BASH_ENV
+            cp ~/repo/reports-metadata/$TIMESTAMP/*.txt ~/repo/reports-history/$TIMESTAMP/
 
       # Actualizar symlink "latest"
       - run:
