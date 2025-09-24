@@ -2,7 +2,7 @@ version: 2.1
 
 jobs:
   build-and-test:
-    machine: true
+    machine: true  # Necesario para usar Docker
     working_directory: ~/repo
     steps:
       - checkout
@@ -12,38 +12,39 @@ jobs:
           name: Build Playwright Docker image
           command: docker build -t playwright-tests .
 
-      # Preparar directorio de reportes con timestamp y guardar TIMESTAMP
+      # Preparar directorio de reportes con timestamp
       - run:
           name: Prepare report directories
           command: |
             mkdir -p ~/repo/reports-history
             TIMESTAMP=$(date +"%Y-%m-%d_%H-%M")
-            echo "$TIMESTAMP" > ~/repo/reports-history/.last_run
+            echo "export TIMESTAMP=$TIMESTAMP" >> $BASH_ENV
+            source $BASH_ENV
             REPORT_DIR=~/repo/reports-history/$TIMESTAMP
             mkdir -p "$REPORT_DIR"
             echo "$TIMESTAMP" > "$REPORT_DIR/timestamp.txt"
             echo "$CIRCLE_BRANCH" > "$REPORT_DIR/branch.txt"
             echo "$CIRCLE_SHA1" > "$REPORT_DIR/commit.txt"
 
-      # Ejecutar tests dentro del contenedor Docker
+      # Ejecutar tests dentro del contenedor Docker y guardar reportes HTML
       - run:
           name: Run Playwright tests in Docker
           command: |
-            TIMESTAMP=$(cat ~/repo/reports-history/.last_run)
+            source $BASH_ENV
             docker run --rm \
               -v ~/repo/reports-history/$TIMESTAMP:/app/reports \
               playwright-tests \
-              npx playwright test --reporter=html
+              npx playwright test --reporter=html --output=/app/reports
 
       # Actualizar symlink "latest"
       - run:
           name: Update latest report symlink
           command: |
-            TIMESTAMP=$(cat ~/repo/reports-history/.last_run)
+            source $BASH_ENV
             rm -rf ~/repo/reports-history/latest || true
             ln -s ~/repo/reports-history/$TIMESTAMP ~/repo/reports-history/latest
 
-      # Guardar artifacts
+      # Guardar artifacts para descargar desde CircleCI
       - store_artifacts:
           path: ~/repo/reports-history
           destination: playwright-reports
@@ -52,7 +53,7 @@ jobs:
       - run:
           name: Generate HTML Dashboard
           command: |
-            TIMESTAMP=$(cat ~/repo/reports-history/.last_run)
+            source $BASH_ENV
             bash ~/repo/scripts/generate_dashboard.sh ~/repo/reports-history/$TIMESTAMP
 
 workflows:
