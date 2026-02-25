@@ -11,12 +11,12 @@ export class DashboardPage extends BasePage {
         this.dashboardLocators = new DashboardLocators(page);
     }
 
-    async sortWithDropDown(): Promise<void> {
-        await this.dashboardLocators.sortDropDown.selectOption('Price (high to low)');
+    async sortWithDropDown(option: string): Promise<void> {
+        await this.selectDropdownOption(this.dashboardLocators.sortDropDown, option);
     }
 
     async addProduct(): Promise<void> {
-        const addToCartButtons: Locator[] = await this.dashboardLocators.addToCartButton.all();
+        const addToCartButtons: Locator[] = await this.getAllElements(this.dashboardLocators.addToCartButton);
         const prices: number[] = await this.getAllPrices();
 
         for (let i = 0; i < prices.length; i++) {
@@ -43,13 +43,15 @@ export class DashboardPage extends BasePage {
     }
 
     async getAllPrices(): Promise<number[]> {
-        const elements = await this.dashboardLocators.productPrice.all();
+        const elements = await this.getAllElements(this.dashboardLocators.productPrice);
         const prices: number[] = [];
     
         for (const element of elements) {
             const priceText = await this.getElementText(element);
+
             if (priceText) {
                 const priceValue = parseFloat(priceText.replace("$", "").trim());
+                
                 if (!isNaN(priceValue)) {
                     prices.push(priceValue);
                 } else {

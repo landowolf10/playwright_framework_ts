@@ -1,0 +1,19 @@
+1. Execute all tests in local: npx playwright test
+2. Execute specific test in local: npx playwright test <test_name> - e.g. npx playwright test src/tests/dashboard/checkout.spec.ts
+3. Run tests in headed mode: npx playwright test --headed
+4. Build Docker image: docker build -t playwright-tests .
+5. Run all tests in Docker image: docker run --rm playwright-tests
+6. Run specific test in Docker: docker run --rm -e TEST_FILE=tests/dashboard/checkout.spec.ts playwright-tests
+7. Run all tests with docker-compose: docker-compose up playwright
+8. Run specific test with docker-compose: TEST_FILE=src/tests/dashboard/checkout.spec.ts docker-compose up playwright
+9. Open report from GitHub Pages of an specific date: https://<user>.github.io/<repo>/2025-09-22_14-30/ - e.g. https://landowolf10.github.io/playwright_framework_ts/2025-09-23_20-38/
+10. Open latest report from GitHub Pages: https://<user>.github.io/<repo>/latest/ - e.g. https://landowolf10.github.io/playwright_framework_ts/latest/
+11. Show a dashboard of all the reports by date in GitHub Pages: https://<user>.github.io/<repo>/ - e.g. https://landowolf10.github.io/playwright_framework_ts/
+
+
+Start services(metrics, prometheus and grafana):
+1. docker-compose up -d metrics prometheus grafana - to stop compose: docker-compose down -v
+2. docker-compose run --rm playwright - Check logs: docker logs -f playwright-metrics
+3. See exposed metrics: http://localhost:9100/metrics
+4. Confirm Prometheus detects metrics:9100: http://localhost:9090/targets
+5. Open Grafana: http://localhost:3000 (admin/admin -> amdin/1234)

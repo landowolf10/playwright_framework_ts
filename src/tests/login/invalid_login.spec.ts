@@ -1,14 +1,7 @@
 import { test } from "../../fixtures/custom-fixtures";
-import { assertVisible, assertEqualsTextString } from "../../helpers/assertions";
 
 test.describe('Invalid login', () => {
-  test.beforeEach(async ({ commonPage }) => {
-    await test.step("Navigate to login page", async () => {
-      await commonPage.navigateToSauceLab();
-    });
-  });
-
-  test('Write invalid username', async ({ loginPage }) => {
+  test('Write invalid username', async ({ navigateToSauceLab, loginPage }) => {
     await test.step('Write user name', async () => {
       await loginPage.writeUsername('standard_use');
     })
@@ -22,21 +15,13 @@ test.describe('Invalid login', () => {
     })
 
     await test.step('Verify invalid login', async () => {
-      const { loginButton, errorMessage } = loginPage.getInvalidLoginElements();
-      const errorMessageText = await loginPage.getErrorMessageText();
-      
-      await assertVisible(loginButton, "Login button");
-      await assertVisible(errorMessage, "Error message");
 
-      await assertEqualsTextString(
-        errorMessageText,
-        "Epic sadface: Username and password do not match any user in this service",
-        "Error Message"
-      );
+      await loginPage.assertLoginFailed();
+      
     })
   })
 
-  test('Write invalid password', async ({ loginPage }) => {
+  test('Write invalid password', async ({ navigateToSauceLab, loginPage }) => {
     await test.step('Write user name', async () => {
       await loginPage.writeUsername('standard_user');
     })
@@ -50,16 +35,7 @@ test.describe('Invalid login', () => {
     })
 
     await test.step('Verify invalid login', async () => {
-      const { loginButton, errorMessage } = loginPage.getInvalidLoginElements();
-      const errorMessageText = await loginPage.getErrorMessageText();
-      
-      await assertVisible(loginButton, "Login button");
-      await assertVisible(errorMessage, "Error message");
-      await assertEqualsTextString(
-        errorMessageText,
-        "Epic sadface: Username and password do not match any user in this service",
-        "Error Message"
-      );
+      await loginPage.assertLoginFailed();
     })
   })
 });

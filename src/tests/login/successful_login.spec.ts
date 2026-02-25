@@ -1,16 +1,9 @@
 import { test } from "../../fixtures/custom-fixtures";
 import { users } from "../../config/test-data";
-import { assertVisible } from "../../helpers/assertions";
 import { metrics } from "../../helpers/observability/metrics";
 
 test.describe("Valid login", () => {
-  test.beforeEach(async ({ commonPage }) => {
-    await test.step("Navigate to login page", async () => {
-      await commonPage.navigateToSauceLab();
-    });
-  });
-
-  test("User can login with valid credentials", async ({ loginPage }) => {
+  test("User can login with valid credentials", async ({ navigateToSauceLab, commonPage, loginPage }) => {
     await test.step("Enter valid credentials", async () => {
       const start = Date.now();
 
@@ -35,9 +28,7 @@ test.describe("Valid login", () => {
     });
 
     await test.step("Verify successful login", async () => {
-      const { cartIcon, sortDropDown } = loginPage.getValidLoginElements();
-      await assertVisible(cartIcon, "Cart Icon");
-      await assertVisible(sortDropDown, "Sort Dropdown");
+      commonPage.assertLoginSuccess();
     });
   });
 });

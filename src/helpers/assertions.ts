@@ -1,7 +1,8 @@
 import { expect, Locator } from "@playwright/test";
+import { TIMEOUTS } from "../config/constants";
 
-export async function assertVisible(element: Locator, name: string) {
-  await expect(element, `${name} should be visible`).toBeVisible();
+export async function assertVisible(element: Locator, name: string, timeout: number = TIMEOUTS.short) {
+  await expect(element, `${name} should be visible`).toBeVisible({ timeout });
 }
 
 export async function assertEqualsTextString(

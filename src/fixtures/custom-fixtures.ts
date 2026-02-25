@@ -3,6 +3,7 @@ import { LoginPage } from "../pages/LoginPage";
 import { CommonPage } from "../pages/CommonPage";
 import { DashboardPage } from "../pages/DashboardPage";
 import { CheckoutPage } from "../pages/CheckoutPage";
+import { users } from "../config/test-data";
 
 type Pages = {
   loginPage: LoginPage;
@@ -11,7 +12,12 @@ type Pages = {
   checkoutPage: CheckoutPage;
 };
 
-export const test = base.extend<Pages>({
+type ExtraFixtures = {
+  navigateToSauceLab: void;
+  validLogin: void;
+};
+
+export const test = base.extend<Pages & ExtraFixtures>({
   loginPage: async ({ page }, use) => {
     await use(new LoginPage(page));
   },
@@ -23,6 +29,15 @@ export const test = base.extend<Pages>({
   },
   checkoutPage: async ({ page }, use) => {
     await use(new CheckoutPage(page));
+  },
+  navigateToSauceLab: async ({ commonPage }, use) => {
+    await commonPage.navigateToSauceLab();
+    await use();
+  },
+  validLogin: async ({ commonPage }, use) => {
+    await commonPage.navigateToSauceLab();
+    await commonPage.login(users.standard.username, users.standard.password);
+    await use();
   },
 });
 

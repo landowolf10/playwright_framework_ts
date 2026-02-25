@@ -3,8 +3,3 @@ export const TIMEOUTS = {
   medium: 7000,
   long: 15000,
 };
-
-export const ROUTES = {
-  base: "/",
-  inventory: "/inventory.html",
-};

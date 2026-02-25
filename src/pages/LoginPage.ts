@@ -1,16 +1,14 @@
 import { Page } from "@playwright/test";
 import { LoginLocators } from "../locators/login_locators";
-import { DashboardLocators } from "../locators/dashboard_locators";
 import { BasePage } from "../helpers/BasePage";
+import { assertEqualsTextString, assertVisible } from "../helpers/assertions";
 
-export class LoginPage extends BasePage{
+export class LoginPage extends BasePage {
     private readonly loginLocators: LoginLocators;
-    private readonly dashboardLocators: DashboardLocators;
 
     constructor(page: Page) {
         super(page);
         this.loginLocators = new LoginLocators(page);
-        this.dashboardLocators = new DashboardLocators(page);
     }
 
     async writeUsername(userName: string) {
@@ -25,18 +23,17 @@ export class LoginPage extends BasePage{
         await this.clickElement(this.loginLocators.loginButton);
     }
 
-    getValidLoginElements() {
-        return {
-            cartIcon: this.dashboardLocators.cartIcon,
-            sortDropDown: this.dashboardLocators.sortDropDown,
-        };
-    }
+    async assertLoginFailed() {
+        const errorMessageText = await this.getErrorMessageText();
 
-    getInvalidLoginElements() {
-        return {
-            loginButton: this.loginLocators.loginButton,
-            errorMessage: this.loginLocators.errorMessage,
-        };
+        await assertVisible(this.loginLocators.loginButton, "Login button");
+        await assertVisible(this.loginLocators.errorMessage, "Error message");
+
+        await assertEqualsTextString(
+            errorMessageText,
+            "Epic sadface: Username and password do not match any user in this service",
+            "Error Message"
+        );
     }
 
     async getErrorMessageText(): Promise<string> {

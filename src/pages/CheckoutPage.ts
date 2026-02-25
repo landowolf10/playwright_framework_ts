@@ -1,16 +1,14 @@
 import { Page } from "@playwright/test";
-import { DashboardLocators } from "../locators/dashboard_locators";
 import { CheckoutLocators } from "../locators/checkout_locators";
 import { BasePage } from "../helpers/BasePage";
+import { assertHasText } from "../helpers/assertions";
 
-export class CheckoutPage extends BasePage{
+export class CheckoutPage extends BasePage {
     private readonly checkoutLocators: CheckoutLocators;
-    private readonly dashboardLocators: DashboardLocators;
 
     constructor(page: Page) {
         super(page);
         this.checkoutLocators = new CheckoutLocators(page);
-        this.dashboardLocators = new DashboardLocators(page);
     }
 
     async getCurrentSubTotal(): Promise<string> {
@@ -24,7 +22,6 @@ export class CheckoutPage extends BasePage{
     }
 
     async proceedWithCheckout(firstName: string, lastName: string, zipCode: string) {
-        await this.clickElement(this.dashboardLocators.cartIcon);
         await this.clickElement(this.checkoutLocators.checkoutButton);
         await this.writeText(this.checkoutLocators.txtFirstName, firstName);
         await this.writeText(this.checkoutLocators.txtLastName, lastName);
@@ -40,10 +37,9 @@ export class CheckoutPage extends BasePage{
         await this.clickElement(this.checkoutLocators.backToHomeButton);
     }
 
-    getCheckOutTexts() {
-        return {
-            orderTitle: this.checkoutLocators.orderTitle,
-            orderMessage: this.checkoutLocators.orderMessage,
-        };
+    async validateCheckout() {
+        await assertHasText(this.checkoutLocators.orderTitle, 'Thank you for your order!', "Title");
+        await assertHasText(this.checkoutLocators.orderMessage, 'Your order has been dispatched, and will arrive just as fast as the pony can get there!',
+        "Message");
     }
 }

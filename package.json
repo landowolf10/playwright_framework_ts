@@ -16,7 +16,9 @@
     "test:report": "playwright test && npx playwright show-report",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "build": "tsc",
+    "start:metrics": "node dist/src/helpers/observability/server.js"
   },
   "keywords": [],
   "author": "",
