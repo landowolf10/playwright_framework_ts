@@ -1,80 +1,119 @@
 import { Locator, Page } from "@playwright/test";
-import { DashboardLocators } from "../locators/dashboard_locators";
-import { BasePage } from "../helpers/BasePage";
+import { DashboardLocators } from "../locators/dashboard_locators.js";
+import { BasePage } from "../helpers/BasePage.js";
+import { logger } from "../helpers/logger.js";
+import { Product, ProductWithLocator } from "../models/Product.js";
 
+/**
+ * Page Object representing the SauceLab Dashboard page.
+ *
+ * Internally uses ProductWithLocator to support UI actions (add to cart, etc.).
+ * Publicly exposes Product (clean domain model) wherever UI context isn't needed.
+ */
 export class DashboardPage extends BasePage {
-    private readonly dashboardLocators: DashboardLocators;
-    private selectedItemPrices: number[] = [];
+    private readonly locators: DashboardLocators;
 
     constructor(page: Page) {
         super(page);
-        this.dashboardLocators = new DashboardLocators(page);
+        this.locators = new DashboardLocators(page);
     }
 
-    async sortWithDropDown(option: string): Promise<void> {
-        await this.selectDropdownOption(this.dashboardLocators.sortDropDown, option);
+    /**
+     * Private helper
+     */
+    private async getProductData(item: Locator): Promise<ProductWithLocator> {
+        const name = await this.getElementText(
+            item.locator(".inventory_item_name")
+        );
+
+        const priceText = await this.getElementText(
+            item.locator(".inventory_item_price")
+        );
+
+        return {
+            name: name.trim(),
+            price: this.parsePrice(priceText),
+            item
+        };
     }
 
-    async addProduct(): Promise<void> {
-        const addToCartButtons: Locator[] = await this.getAllElements(this.dashboardLocators.addToCartButton);
-        const prices: number[] = await this.getAllPrices();
+    private parsePrice(priceText: string): number {
+        return parseFloat(priceText.replace("$", "").trim());
+    }
 
-        for (let i = 0; i < prices.length; i++) {
-            const currentPrice = prices[i];
-            const addToCartButton = addToCartButtons[i];
+    /**
+   * Retrieves all products from the dashboard.
+   * Returns clean Product models (no Locator).
+   */
+    async getAllProducts(): Promise<Product[]> {
+        logger.info("Retrieving all products from the dashboard");
 
-            if (currentPrice !== undefined && addToCartButton !== undefined && currentPrice < 20) {
-                await this.clickElement(addToCartButton);
-                prices.splice(i, 1);
-                this.selectedItemPrices.splice(i, 1);
-                addToCartButtons.splice(i, 1);
-    
-                this.selectedItemPrices.push(currentPrice);
-                
-                break;
-            }
+        const items = await this.getAllElements(this.locators.allProducts);
+        logger.info(`Found ${items.length} products on the page`);
+
+        const products: Product[] = [];
+
+        for (const item of items) {
+            const { name, price } = await this.getProductData(item);
+            products.push({ name, price });
         }
 
-        console.log('Selected item prices: ', this.selectedItemPrices);
+        return products;
     }
 
-    async getExpectedSubTotal(): Promise<string> {
-        return await this.getSubTotalSum();
-    }
-
-    async getAllPrices(): Promise<number[]> {
-        const elements = await this.getAllElements(this.dashboardLocators.productPrice);
-        const prices: number[] = [];
     
-        for (const element of elements) {
-            const priceText = await this.getElementText(element);
-
-            if (priceText) {
-                const priceValue = parseFloat(priceText.replace("$", "").trim());
-                
-                if (!isNaN(priceValue)) {
-                    prices.push(priceValue);
-                } else {
-                    console.warn('Could not parse price text:', priceText);
-                }
-            } else {
-                console.warn('Price text is null for element:', element);
-            }
+    /**
+   * Returns a random product with its Locator for UI actions.
+   * Use this when you need to interact with the product element.
+   */
+    async getRandomProduct(): Promise<ProductWithLocator> {
+        const items = await this.getAllElements(this.locators.allProducts);
+    
+        if (items.length === 0) {
+            throw new Error("No products found on the dashboard");
         }
     
-        return prices;
+        const randomIndex = Math.floor(Math.random() * items.length);
+        const item = items[randomIndex];
+    
+        if (!item) {
+            throw new Error(`Product at index ${randomIndex} not found`);
+        }
+    
+        return await this.getProductData(item);
     }
 
-    async getSubTotalSum(): Promise<string> {
-        let sum: number = 0;
+    /**
+     * Action: add product to cart
+     */
+    async addProductToCart(product: ProductWithLocator): Promise<void> {
+        logger.info(`Adding product to cart: "${product.name}"`);
 
-        console.log('All prices: ', this.selectedItemPrices);
+        const button = product.item.locator(this.locators.addToCartButton);
+        await this.clickElement(button);
+    }
 
-        for (const selectedItemPrice of this.selectedItemPrices)
-            sum += selectedItemPrice;
+    /**
+     * Navigation
+     */
+    async goToCart(): Promise<void> {
+        logger.info("Navigating to cart page");
+        await this.clickElement(this.locators.cartIcon);
+        logger.info("Cart page opened successfully");
+    }
 
-        console.log('Sum: ', sum);
-        
-        return "Item total: $" + sum;
+    /**
+     * For assertions
+     */
+    getCartIcon(): Locator {
+        return this.locators.cartIcon;
+    }
+
+    async isCartIconVisible(): Promise<boolean> {
+        return await this.locators.cartIcon.isVisible();
+    }
+
+    getAddToCartButtonFromItem(item: Locator): Locator {
+        return item.locator(this.locators.addToCartButton);
     }
 }

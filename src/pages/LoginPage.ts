@@ -1,43 +1,64 @@
-import { Page } from "@playwright/test";
-import { LoginLocators } from "../locators/login_locators";
-import { BasePage } from "../helpers/BasePage";
-import { assertEqualsTextString, assertVisible } from "../helpers/assertions";
+import { Locator, Page } from "@playwright/test";
+import { LoginLocators } from "../locators/login_locators.js";
+import { BasePage } from "../helpers/BasePage.js";
+import { ENV } from "../config/env.config.js";
+import { logger } from "../helpers/logger.js";
+import { User } from "../models/User.js";
 
+/**
+ * Page Object representing the SauceLab Login page.
+ */
 export class LoginPage extends BasePage {
-    private readonly loginLocators: LoginLocators;
+    private readonly locators: LoginLocators;
 
     constructor(page: Page) {
         super(page);
-        this.loginLocators = new LoginLocators(page);
+        this.locators = new LoginLocators(page);
     }
 
-    async writeUsername(userName: string) {
-        await this.writeText(this.loginLocators.userTextbox, userName);
+    /**
+     * Navigates to SauceLab app
+     */
+    async navigateToSauceLab(): Promise<void> {
+        try {
+            await this.page.goto(ENV.baseURL);
+
+            const title = await this.page.title();
+
+            if (!title.toLowerCase().includes("swag")) {
+                throw new Error(`Unexpected page title: ${title}`);
+            }
+
+            logger.info(`Navigated to ${ENV.baseURL}`);
+        } catch (error: any) {
+            throw new Error(
+                `Navigation failed. URL: ${ENV.baseURL}. Error: ${error.message}`
+            );
+        }
     }
 
-    async writePassword(password: string) {
-        await this.writeText(this.loginLocators.passwordTextbox, password);
+    /**
+     * High-level login action
+     */
+    async login(user: User): Promise<void> {
+        logger.info(`Logging in with user: ${user.username}`);
+
+        await this.writeText(this.locators.userTextbox, user.username);
+        await this.writeText(this.locators.passwordTextbox, user.password);
+        await this.clickElement(this.locators.loginButton);
     }
 
-    async clickLoginButton() {
-        await this.clickElement(this.loginLocators.loginButton);
+    getErrorMessage(): Locator {
+        return this.locators.errorMessage;
     }
 
-    async assertLoginFailed() {
-        const errorMessageText = await this.getErrorMessageText();
-
-        await assertVisible(this.loginLocators.loginButton, "Login button");
-        await assertVisible(this.loginLocators.errorMessage, "Error message");
-
-        await assertEqualsTextString(
-            errorMessageText,
-            "Epic sadface: Username and password do not match any user in this service",
-            "Error Message"
-        );
-    }
-
+    /**
+     * Queries (NO assertions)
+     */
     async getErrorMessageText(): Promise<string> {
-        const errorMessage: string | null = await this.getElementText(this.loginLocators.errorMessage);
-        return errorMessage ?? "Error message not found.";
+        logger.info("Retrieving login error message text");
+
+        const text = await this.getElementText(this.locators.errorMessage);
+        return text ?? "";
     }
 }

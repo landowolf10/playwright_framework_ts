@@ -17,3 +17,11 @@ Start services(metrics, prometheus and grafana):
 3. See exposed metrics: http://localhost:9100/metrics
 4. Confirm Prometheus detects metrics:9100: http://localhost:9090/targets
 5. Open Grafana: http://localhost:3000 (admin/admin -> amdin/1234)
+
+
+
+Rotate array left by k steps in-place.
+rotateLeft(arr, k).
+Example: arr = [1, 2, 3 , 4 , 5]
+rotateLeft(arr, 2) -> [3, 4, 5, 1, 2]
+rotateLeft(arr, 3) -> [4, 5, 1, 2, 3]

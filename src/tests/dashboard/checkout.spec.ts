@@ -1,35 +1,39 @@
 import { test } from "../../fixtures/custom-fixtures";
-import { assertEqualsTextString } from "../../helpers/assertions";
+import { assertCartHasItems, assertCartIsEmpty } from "../../helpers/assertions/cart-assertions";
 
-test.describe('Complete checkout', () => {
-  test('Proceed with checkout', async ({ validLogin, commonPage, dashboardPage, checkoutPage }) => {
-    await test.step('Sort products from most expensive to cheapest', async () => {
-      await dashboardPage.sortWithDropDown('Price (high to low)');
-    })
+test.describe('Cart management', () => {
 
-    await test.step('add two products to the cart less than $20', async () => {
-      await dashboardPage.addProduct();
-      await dashboardPage.addProduct();
-    })
-    
-    await test.step('Go to shopping cart and proceed with checkout', async () => {
-      await commonPage.goToCart();
-      await checkoutPage.proceedWithCheckout('Orlando', 'Avila', '40880');
-      const currentSubTotal = await checkoutPage.getCurrentSubTotal();
-      const expectedSubTotal = await dashboardPage.getSubTotalSum();
-      console.log('Expected subtotal: ', expectedSubTotal);
-      await assertEqualsTextString(
-        currentSubTotal,
-        expectedSubTotal,
-        "Subtotal"
-       );
-    })
+  test('Add product to cart', async ({ loginAsStandardUser: _loginAsStandardUser, dashboardPage, cartPage }) => {
 
-    await test.step('Finish checkout', async () => {
-      await checkoutPage.finishCheckout();
-      await checkoutPage.validateCheckout();
-      await checkoutPage.clickBackHomeButton();
-      await commonPage.assertLoginSuccess();
-    })
-  })
+    let product;
+
+    await test.step('Add product to cart', async () => {
+      product = await dashboardPage.getRandomProduct();
+      await dashboardPage.addProductToCart(product);
+    });
+
+    await test.step('Validate cart has 1 item', async () => {
+      await dashboardPage.goToCart();
+      await assertCartHasItems(cartPage);
+    });
+
+  });
+
+  test('Remove product from cart', async ({ loginAsStandardUser: _loginAsStandardUser, dashboardPage, cartPage }) => {
+
+    await test.step('Add product first', async () => {
+      const product = await dashboardPage.getRandomProduct();
+      await dashboardPage.addProductToCart(product);
+    });
+
+    await test.step('Remove product', async () => {
+      await dashboardPage.goToCart();
+      await cartPage.removeFirstItem();
+    });
+
+    await test.step('Validate cart is empty', async () => {
+      await assertCartIsEmpty(cartPage);
+    });
+
+  });
 });

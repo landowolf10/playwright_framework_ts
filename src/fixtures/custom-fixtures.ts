@@ -1,44 +1,47 @@
 import { test as base } from "@playwright/test";
 import { LoginPage } from "../pages/LoginPage";
-import { CommonPage } from "../pages/CommonPage";
 import { DashboardPage } from "../pages/DashboardPage";
-import { CheckoutPage } from "../pages/CheckoutPage";
+import { CartPage } from "../pages/CartPage";
+import { logger } from "../helpers/logger";
+import { allure } from "allure-playwright";
 import { users } from "../config/test-data";
 
 type Pages = {
   loginPage: LoginPage;
-  commonPage: CommonPage;
   dashboardPage: DashboardPage;
-  checkoutPage: CheckoutPage;
+  cartPage: CartPage;
 };
 
 type ExtraFixtures = {
   navigateToSauceLab: void;
-  validLogin: void;
+  loginAsStandardUser: void;
 };
 
 export const test = base.extend<Pages & ExtraFixtures>({
+  page: async ({ page }, use, testInfo) => {
+    logger.info(`Running test: ${testInfo.title}`);
+    await allure.label("device", testInfo.project.name);
+    await allure.label("browser", testInfo.project.name);
+    await use(page);
+  },
   loginPage: async ({ page }, use) => {
     await use(new LoginPage(page));
-  },
-  commonPage: async ({ page }, use) => {
-    await use(new CommonPage(page));
   },
   dashboardPage: async ({ page }, use) => {
     await use(new DashboardPage(page));
   },
-  checkoutPage: async ({ page }, use) => {
-    await use(new CheckoutPage(page));
+  cartPage: async ({ page }, use) => {
+    await use(new CartPage(page));
   },
-  navigateToSauceLab: async ({ commonPage }, use) => {
-    await commonPage.navigateToSauceLab();
+  loginAsStandardUser: async ({ loginPage }, use) => {
+    await loginPage.navigateToSauceLab();
+    await loginPage.login(users.standard);
     await use();
   },
-  validLogin: async ({ commonPage }, use) => {
-    await commonPage.navigateToSauceLab();
-    await commonPage.login(users.standard.username, users.standard.password);
+  navigateToSauceLab: async ({ loginPage }, use) => {
+    await loginPage.navigateToSauceLab();
     await use();
-  },
+  }
 });
 
 export const expect = test.expect;

@@ -1,23 +1,23 @@
-# Base image oficial de Playwright con dependencias
-FROM mcr.microsoft.com/playwright:v1.41.2-focal
+FROM mcr.microsoft.com/playwright:v1.51.0-jammy
 
 # Set working directory
 WORKDIR /app
 
-# Copiar package.json y package-lock.json primero para cache de npm install
 COPY package.json package-lock.json ./
 
-# Instalar dependencias de Node
 RUN npm ci
-
-# Instalar Playwright browsers
 RUN npx playwright install --with-deps
 
-# Copiar el resto del proyecto (src, configuraciones, etc.)
 COPY . .
+
+# ── Environment ────────────────────────────────────────────────────────────────
+ENV BASE_URL="https://www.saucedemo.com"
+ENV METRICS_PORT=9100
+# CI=true disables interactive output and enables automatic retries in Playwright
+ENV CI=true
 
 # Establecer variable opcional de test
 ENV TEST_FILE=""
 
 # Comando por defecto para ejecutar tests
-CMD ["sh", "-c", "npx playwright test $TEST_FILE"]
+CMD ["sh", "-c", "npx playwright test $TEST_FILE", "--retries=2", "--reporter=list,html"]

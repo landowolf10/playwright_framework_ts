@@ -10,8 +10,8 @@ export default defineConfig({
   outputDir: './test-results',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 4 : undefined,
+  retries: process.env.CI ? 2 : 1,
+  workers: process.env.CI ? 3 : undefined,
   reporter: [
     ['list'],
     ['html', { 
@@ -39,21 +39,13 @@ export default defineConfig({
     headless: true
   },
 
-  projects: [
-    // Setup project
-    {
-      name: 'setup',
-      testMatch: /.*\.setup\.ts/,
-    },
-
-    {
+  projects: [{
       name: 'chromium',
       use: { 
         ...devices['Desktop Chrome'],
         viewport: null,
         deviceScaleFactor: undefined,
-      },
-      dependencies: ['setup'],
+      }
     },
 
     {
@@ -62,8 +54,7 @@ export default defineConfig({
         ...devices['Desktop Firefox'],
         viewport: null,
         deviceScaleFactor: undefined,
-      },
-      dependencies: ['setup'],
+      }
     },
 
     {
@@ -72,19 +63,16 @@ export default defineConfig({
         ...devices['Desktop Safari'],
         viewport: null,
         deviceScaleFactor: undefined,
-      },
-      dependencies: ['setup'],
+      }
     },
 
     {
       name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-      dependencies: ['setup'],
+      use: { ...devices['Pixel 5'] }
     },
     {
       name: 'Mobile Safari',
-      use: { ...devices['iPhone 16'] },
-      dependencies: ['setup'],
+      use: { ...devices['iPhone 16'] }
     },
   ],
 

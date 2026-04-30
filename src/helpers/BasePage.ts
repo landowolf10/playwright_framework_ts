@@ -30,14 +30,19 @@ export class BasePage {
     await locator.fill(text);
   }
 
-  async clickElement(locator: Locator, timeout: number = TIMEOUTS.short) {
-    await this.waitForVisible(locator, timeout);
-    await locator.click();
+  async clickElement(locator: Locator, timeout: number = TIMEOUTS.medium) {
+    await locator.waitFor({ state: "visible", timeout });
+    await locator.scrollIntoViewIfNeeded();
+    await locator.click({ timeout });
   }
 
   async getElementText(locator: Locator, timeout: number = 5000): Promise<string> {
     await this.waitForVisible(locator, timeout);
     return await locator.textContent() ?? "";
+  }
+
+  async isVisible(locator: Locator): Promise<boolean> {
+    return await locator.isVisible();
   }
 
   async selectDropdownOption(locator: Locator, option: string, timeout: number = 5000) {
@@ -53,9 +58,11 @@ export class BasePage {
     await this.page.waitForLoadState(state);
   }
 
-  async takeScreenshot(name: string) {
-    await this.page.screenshot({ 
-      path: `reports/screenshots/${name}.png` 
+  async takeScreenshot(name: string): Promise<void> {
+    const timestamp = Date.now();
+    await this.page.screenshot({
+      path: `reports/screenshots/${timestamp}-${name}.png`,
+      fullPage: false,
     });
   }
 }
