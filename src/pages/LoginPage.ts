@@ -1,19 +1,16 @@
 import { Locator, Page } from "@playwright/test";
-import { LoginLocators } from "../locators/login_locators.js";
 import { BasePage } from "../helpers/BasePage.js";
 import { ENV } from "../config/env.config.js";
 import { logger } from "../helpers/logger.js";
 import { User } from "../models/User.js";
+import { loginLocators } from "../locators/login_locators.js";
 
 /**
  * Page Object representing the SauceLab Login page.
  */
 export class LoginPage extends BasePage {
-    private readonly locators: LoginLocators;
-
     constructor(page: Page) {
         super(page);
-        this.locators = new LoginLocators(page);
     }
 
     /**
@@ -43,13 +40,13 @@ export class LoginPage extends BasePage {
     async login(user: User): Promise<void> {
         logger.info(`Logging in with user: ${user.username}`);
 
-        await this.writeText(this.locators.userTextbox, user.username);
-        await this.writeText(this.locators.passwordTextbox, user.password);
-        await this.clickElement(this.locators.loginButton);
+        await this.writeText(this.page.getByTestId(loginLocators.userTextbox), user.username);
+        await this.writeText(this.page.getByTestId(loginLocators.passwordTextbox), user.password);
+        await this.clickElement(this.page.getByTestId(loginLocators.loginButton));
     }
 
     getErrorMessage(): Locator {
-        return this.locators.errorMessage;
+        return this.page.locator(loginLocators.errorMessage);
     }
 
     /**
@@ -58,7 +55,7 @@ export class LoginPage extends BasePage {
     async getErrorMessageText(): Promise<string> {
         logger.info("Retrieving login error message text");
 
-        const text = await this.getElementText(this.locators.errorMessage);
+        const text = await this.getElementText(this.page.locator(loginLocators.errorMessage));
         return text ?? "";
     }
 }

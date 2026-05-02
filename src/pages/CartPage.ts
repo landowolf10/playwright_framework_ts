@@ -1,31 +1,28 @@
 import { Locator, Page } from "@playwright/test";
-import { CartLocators } from "../locators/cart_locators";
 import { BasePage } from "../helpers/BasePage.js";
 import { logger } from "../helpers/logger.js";
+import { cartLocators } from "../locators/cart_locators.js";
 
 /**
  * Page Object representing the Cart page.
  */
 export class CartPage extends BasePage {
-    private readonly locators: CartLocators;
-
     constructor(page: Page) {
         super(page);
-        this.locators = new CartLocators(page);
     }
 
     /**
      * Retrieves all cart items
      */
     async getCartItems(): Promise<Locator[]> {
-        return await this.getAllElements(this.locators.cartItems);
+        return await this.getAllElements(this.page.locator(cartLocators.cartItems));
     }
 
     /**
      * Retrieves cart items count
      */
     async getCartItemsCount(): Promise<number> {
-        return await this.locators.cartItems.count();
+        return await this.page.locator(cartLocators.cartItems).count();
     }
 
     /**
@@ -44,9 +41,7 @@ export class CartPage extends BasePage {
             throw new Error("First item not found");
         }
 
-        const removeButton = firstItem.locator(
-            this.locators.removeButton
-        );
+        const removeButton = firstItem.getByRole(...cartLocators.removeButton);
 
         await this.clickElement(removeButton);
         await firstItem.waitFor({ state: "detached" });
@@ -65,17 +60,17 @@ export class CartPage extends BasePage {
     }
 
     /**
-     * 🔹 Controlled exposure (for assertions)
+     * Controlled exposure (for assertions)
      */
     getRemoveButton(): Locator {
-        return this.locators.removeButton;
+        return this.page.getByRole(...cartLocators.removeButton);
     }
 
     getCheckoutButton(): Locator {
-        return this.locators.checkoutButton;
+        return this.page.getByTestId('checkout');
     }
 
     getContinueShoppingButton(): Locator {
-        return this.locators.continueButton;
+        return this.page.getByTestId('continue');
     }
 }

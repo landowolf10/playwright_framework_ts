@@ -1,8 +1,8 @@
 import { Locator, Page } from "@playwright/test";
-import { DashboardLocators } from "../locators/dashboard_locators.js";
 import { BasePage } from "../helpers/BasePage.js";
 import { logger } from "../helpers/logger.js";
 import { Product, ProductWithLocator } from "../models/Product.js";
+import { dashboardLocators } from "../locators/dashboard_locators.js";
 
 /**
  * Page Object representing the SauceLab Dashboard page.
@@ -11,11 +11,8 @@ import { Product, ProductWithLocator } from "../models/Product.js";
  * Publicly exposes Product (clean domain model) wherever UI context isn't needed.
  */
 export class DashboardPage extends BasePage {
-    private readonly locators: DashboardLocators;
-
     constructor(page: Page) {
         super(page);
-        this.locators = new DashboardLocators(page);
     }
 
     /**
@@ -48,7 +45,7 @@ export class DashboardPage extends BasePage {
     async getAllProducts(): Promise<Product[]> {
         logger.info("Retrieving all products from the dashboard");
 
-        const items = await this.getAllElements(this.locators.allProducts);
+        const items = await this.getAllElements(this.page.locator(dashboardLocators.allProducts));
         logger.info(`Found ${items.length} products on the page`);
 
         const products: Product[] = [];
@@ -67,7 +64,7 @@ export class DashboardPage extends BasePage {
    * Use this when you need to interact with the product element.
    */
     async getRandomProduct(): Promise<ProductWithLocator> {
-        const items = await this.getAllElements(this.locators.allProducts);
+        const items = await this.getAllElements(this.page.locator(dashboardLocators.allProducts));
     
         if (items.length === 0) {
             throw new Error("No products found on the dashboard");
@@ -89,7 +86,7 @@ export class DashboardPage extends BasePage {
     async addProductToCart(product: ProductWithLocator): Promise<void> {
         logger.info(`Adding product to cart: "${product.name}"`);
 
-        const button = product.item.locator(this.locators.addToCartButton);
+        const button = product.item.locator(this.page.locator(dashboardLocators.addToCartButton));
         await this.clickElement(button);
     }
 
@@ -98,7 +95,7 @@ export class DashboardPage extends BasePage {
      */
     async goToCart(): Promise<void> {
         logger.info("Navigating to cart page");
-        await this.clickElement(this.locators.cartIcon);
+        await this.clickElement(this.page.locator(dashboardLocators.cartIcon));
         logger.info("Cart page opened successfully");
     }
 
@@ -106,14 +103,14 @@ export class DashboardPage extends BasePage {
      * For assertions
      */
     getCartIcon(): Locator {
-        return this.locators.cartIcon;
+        return this.page.locator(dashboardLocators.cartIcon);
     }
 
     async isCartIconVisible(): Promise<boolean> {
-        return await this.locators.cartIcon.isVisible();
+        return await this.page.locator(dashboardLocators.cartIcon).isVisible();
     }
 
     getAddToCartButtonFromItem(item: Locator): Locator {
-        return item.locator(this.locators.addToCartButton);
+        return item.locator(this.page.locator(dashboardLocators.addToCartButton));
     }
 }
